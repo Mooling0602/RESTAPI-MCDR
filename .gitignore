@@ -1,0 +1,12 @@
+# IDEs
+.vscode/
+.idea/
+.zed/
+
+# Vitual environment
+.venv/
+.python-version
+uv.lock
+
+# MCDReforged development
+*.mcdr

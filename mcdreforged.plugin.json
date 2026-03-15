@@ -1,0 +1,18 @@
+{
+  "id": "rest_api",
+  "version": "0.0.1",
+  "name": "RESTAPI",
+  "description": {
+    "en_us": "A RESTful API for MCDReforged.",
+    "zh_cn": "一个适用于MCDReforged的RESTful API。"
+  },
+  "author": "Mooling0602",
+  "link": "https://github.com/Mooling0602",
+  "dependencies": {
+    "mcdreforged": ">=2.14.1",
+    "python": ">=3.12"
+  },
+  "resources": [
+    "lang"
+  ]
+}
