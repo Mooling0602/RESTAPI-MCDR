@@ -182,7 +182,7 @@ async def query_plugin_type(plugin_id: str):
 
 @app.get(
     "/query/mcdr_language",
-    summary="Query MCDR laanguuage",
+    summary="Query MCDR language",
     dependencies=[Depends(verify_token)],
 )
 async def query_mcdr_language():
