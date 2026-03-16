@@ -108,7 +108,7 @@ async def check_status():
 
 
 @app.get(
-    "/is_server_running",
+    "/query/is_server_running",
     summary="Is server running",
     dependencies=[Depends(verify_token)],
 )
@@ -118,7 +118,7 @@ async def query_is_server_running():
 
 
 @app.get(
-    "/is_server_startup",
+    "/query/is_server_startup",
     summary="Is server startup",
     dependencies=[Depends(verify_token)],
 )
@@ -128,7 +128,9 @@ async def query_is_server_startup():
 
 
 @app.get(
-    "/is_rcon_running", summary="Is rcon running", dependencies=[Depends(verify_token)]
+    "/query/is_rcon_running",
+    summary="Is rcon running",
+    dependencies=[Depends(verify_token)],
 )
 async def query_is_rcon_running():
     """Return if MCDR’s rcon is running"""
@@ -136,11 +138,56 @@ async def query_is_rcon_running():
 
 
 @app.get(
-    "/plugin_list", summary="Get MCDR plugin list", dependencies=[Depends(verify_token)]
+    "/query/server_pid",
+    summary="Query server PID",
+    dependencies=[Depends(verify_token)],
+)
+async def query_server_pid():
+    """Return the pid of the server process.
+
+    **Notes**: the process with this pid is a bash process, which is the parent process of real server process you might be interested in.
+    """
+    return psi.get_server_pid()
+
+
+@app.get(
+    "/query/server_pid_all",
+    summary="Query server all PIDs",
+    dependencies=[Depends(verify_token)],
+)
+async def query_server_pid_all():
+    """Return a list of pid of all processes in the server’s process group."""
+    return psi.get_server_pid_all()
+
+
+@app.get(
+    "/query/plugin_list",
+    summary="Get MCDR plugin list",
+    dependencies=[Depends(verify_token)],
 )
 async def query_plugin_list():
     """Return a list containing all loaded plugin id like `["my_plugin", "another_plugin"]`."""
     return psi.get_plugin_list()
+
+
+@app.get(
+    "/query/plugin_type",
+    summary="Query plugin type",
+    dependencies=[Depends(verify_token)],
+)
+async def query_plugin_type(plugin_id: str):
+    """Return the type of the specified plugin, or None if failed to query."""
+    return psi.get_plugin_type(plugin_id)
+
+
+@app.get(
+    "/query/mcdr_language",
+    summary="Query MCDR laanguuage",
+    dependencies=[Depends(verify_token)],
+)
+async def query_mcdr_language():
+    """Return the current language MCDR is using."""
+    return psi.get_mcdr_language()
 
 
 @app.post("/rcon", summary="Query rcon result", dependencies=[Depends(verify_token)])
