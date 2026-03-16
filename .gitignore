@@ -8,5 +8,8 @@
 .python-version
 uv.lock
 
+# Python
+build/
+
 # MCDReforged development
 *.mcdr
