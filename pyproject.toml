@@ -13,6 +13,7 @@ dependencies = [
 optional = [
     "moolings-rcon-api",
 ]
+dev = ["ruff>=0.15.6", "ty>=0.0.23",]
 
 [tool.uv.sources]
 moolings-rcon-api = { git = "https://github.com/Mooling0602/MoolingsRconAPI-MCDR.git" }

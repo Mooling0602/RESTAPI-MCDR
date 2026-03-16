@@ -16,7 +16,7 @@ from rest_api.config import APIConfig
 
 psi = ServerInterface.psi()
 builder = SimpleCommandBuilder()
-config: APIConfig = APIConfig()
+_config: APIConfig = APIConfig()
 app = FastAPI()
 fastapi_mcdr = None
 auth_header = APIKeyHeader(name="Authorization", auto_error=False)
@@ -29,10 +29,11 @@ class ConfigError(RuntimeError):
 
 
 def on_load(s: PluginServerInterface, _):
-    global fastapi_mcdr, config, psi, rcon_api
+    global fastapi_mcdr, _config, psi, rcon_api
     fastapi_mcdr = s.get_plugin_instance("fastapi_mcdr")
-    config = s.load_config_simple(file_name="config.yml", target_class=APIConfig)  # ty: ignore[invalid-assignment]
+    _config = s.load_config_simple(file_name="config.yml", target_class=APIConfig)  # ty: ignore[invalid-assignment]
     psi = s
+    # noinspection SpellCheckingInspection
     rcon_api = s.get_plugin_instance("moolings_rcon_api")  # ty: ignore[invalid-assignment]
     if fastapi_mcdr is not None and fastapi_mcdr.is_ready():
         app.include_router(webhooks_router)
@@ -51,10 +52,10 @@ def get_token(src: CommandSource):
             "You can only get token in console! Please execute this command again in MCDR console."
         )
         return
-    if config is None:
+    if _config is None:
         src.reply("Failed to get token, is config right?")
         return
-    src.reply(config.api_token)
+    src.reply(_config.api_token)
 
 
 def mount_app(s: PluginServerInterface):
@@ -64,9 +65,9 @@ def mount_app(s: PluginServerInterface):
 
 
 def verify_token(token: str | None = Depends(auth_header)):
-    if config is None:
+    if _config is None:
         raise ConfigError("Failed to load config!")
-    if token != config.api_token:
+    if token != _config.api_token:
         raise HTTPException(401, "Invalid token.")
     return token
 
@@ -133,6 +134,7 @@ async def query_is_server_startup():
     dependencies=[Depends(verify_token)],
 )
 async def query_is_rcon_running():
+    # noinspection SpellCheckingInspection
     """Return if MCDR’s rcon is running"""
     return psi.is_rcon_running()
 

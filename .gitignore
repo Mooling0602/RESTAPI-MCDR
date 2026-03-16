@@ -10,6 +10,7 @@ uv.lock
 
 # Python
 build/
+__pycache__/
 
 # MCDReforged development
 *.mcdr
