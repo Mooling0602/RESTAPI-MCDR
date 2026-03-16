@@ -1,17 +1,22 @@
 from typing import Callable, Awaitable, Any
 from fastapi.security import APIKeyHeader
-from fastapi import FastAPI, Depends, HTTPException, APIRouter
+from fastapi import FastAPI, Depends, HTTPException, APIRouter, Body
 from mcdreforged.api.all import (
     PluginServerInterface,
     SimpleCommandBuilder,
     CommandSource,
     ServerInterface,
 )
+
+try:
+    import moolings_rcon_api as rcon_api
+except (ImportError, ModuleNotFoundError):
+    rcon_api = None  # ty: ignore[invalid-assignment]
 from rest_api.config import APIConfig
 
 psi = ServerInterface.psi()
 builder = SimpleCommandBuilder()
-config: APIConfig | None = None
+config: APIConfig = APIConfig()
 app = FastAPI()
 fastapi_mcdr = None
 auth_header = APIKeyHeader(name="Authorization", auto_error=False)
@@ -24,10 +29,11 @@ class ConfigError(RuntimeError):
 
 
 def on_load(s: PluginServerInterface, _):
-    global fastapi_mcdr, config, psi
+    global fastapi_mcdr, config, psi, rcon_api
     fastapi_mcdr = s.get_plugin_instance("fastapi_mcdr")
     config = s.load_config_simple(file_name="config.yml", target_class=APIConfig)  # ty: ignore[invalid-assignment]
     psi = s
+    rcon_api = s.get_plugin_instance("moolings_rcon_api")  # ty: ignore[invalid-assignment]
     if fastapi_mcdr is not None and fastapi_mcdr.is_ready():
         app.include_router(webhooks_router)
         mount_app(s)
@@ -119,3 +125,39 @@ async def query_is_server_running():
 async def query_is_server_startup():
     """Return if the server has started up."""
     return psi.is_server_startup()
+
+
+@app.get(
+    "/is_rcon_running", summary="Is rcon running", dependencies=[Depends(verify_token)]
+)
+async def query_is_rcon_running():
+    """Return if MCDR’s rcon is running"""
+    return psi.is_rcon_running()
+
+
+@app.get(
+    "/plugin_list", summary="Get MCDR plugin list", dependencies=[Depends(verify_token)]
+)
+async def query_plugin_list():
+    """Return a list containing all loaded plugin id like `["my_plugin", "another_plugin"]`."""
+    return psi.get_plugin_list()
+
+
+@app.post("/rcon", summary="Query rcon result", dependencies=[Depends(verify_token)])
+async def query_rcon(data: dict = Body(..., examples=[{"command": "list"}])):
+    """Send command to the server through rcon connection, and get the result of the execution."""
+    try:
+        command: str | None = data.get("command", None)
+        if not command:
+            return {
+                "is_success": False,
+                "detail": "Error: failed to parse query command.",
+            }
+        if rcon_api:
+            result = await rcon_api.rcon_get(psi, command)
+        result = psi.rcon_query(command)
+        if not isinstance(result, str):
+            result = None
+        return {"is_success": True, "detail": result}
+    except Exception as e:
+        return {"is_success": False, "detail": f"Error: {str(e)}"}

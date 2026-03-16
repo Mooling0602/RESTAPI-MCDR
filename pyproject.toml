@@ -8,3 +8,11 @@ dependencies = [
     "fastapi>=0.135.1",
     "mcdreforged>=2.15.7",
 ]
+
+[dependency-groups]
+optional = [
+    "moolings-rcon-api",
+]
+
+[tool.uv.sources]
+moolings-rcon-api = { git = "https://github.com/Mooling0602/MoolingsRconAPI-MCDR.git" }
