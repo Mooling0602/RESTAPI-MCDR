@@ -7,6 +7,7 @@
 .venv/
 .python-version
 uv.lock
+.ruff_cache/
 
 # Python
 build/

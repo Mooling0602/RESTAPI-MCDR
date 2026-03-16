@@ -1,11 +1,12 @@
-from typing import Callable, Awaitable, Any
+from typing import Any, Awaitable, Callable
+
+from fastapi import APIRouter, Body, Depends, FastAPI, HTTPException
 from fastapi.security import APIKeyHeader
-from fastapi import FastAPI, Depends, HTTPException, APIRouter, Body
 from mcdreforged.api.all import (
-    PluginServerInterface,
-    SimpleCommandBuilder,
     CommandSource,
+    PluginServerInterface,
     ServerInterface,
+    SimpleCommandBuilder,
 )
 
 try:
@@ -208,5 +209,15 @@ async def query_rcon(data: dict = Body(..., examples=[{"command": "list"}])):
         if not isinstance(result, str):
             result = None
         return {"is_success": True, "detail": result}
+    except Exception as e:
+        return {"is_success": False, "detail": f"Error: {str(e)}"}
+
+
+@app.post("/logger", summary="Log message", dependencies=Depends(verify_token))
+async def api_logger(msg: str = Body(...)):
+    """Log a message to MCDR console."""
+    try:
+        psi.logger.info(f"[RESTAPI] {msg}")
+        return {"is_success": True, "detail": "Logged successfully."}
     except Exception as e:
         return {"is_success": False, "detail": f"Error: {str(e)}"}
