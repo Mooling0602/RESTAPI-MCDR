@@ -5,6 +5,8 @@ from fastapi.security import APIKeyHeader
 from mcdreforged.api.all import (
     CommandSource,
     PluginServerInterface,
+    RColor,
+    RText,
     ServerInterface,
     SimpleCommandBuilder,
 )
@@ -43,6 +45,17 @@ def on_load(s: PluginServerInterface, _):
         s.register_event_listener(fastapi_mcdr.COLLECT_EVENT, mount_app)
         builder.register(s)
         s.logger.info("RESTAPI loaded.")
+        if hasattr(fastapi_mcdr, "__uvicorn_server"):
+            __uvicorn_server = fastapi_mcdr.__uvicorn_server
+            if hasattr(__uvicorn_server, "config"):
+                _port = __uvicorn_server.config.port
+                _host = __uvicorn_server.config.host
+                docs_url = (
+                    RText(f"http://{_host}:{_port}/rest_api/docs")
+                    .set_color(RColor.green)
+                    .to_colored_text()
+                )
+                s.logger.info("For RESTAPI docs, see: " + docs_url)
     else:
         s.logger.warning("Failed to init RESTAPI.")
 
