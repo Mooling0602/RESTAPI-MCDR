@@ -14,6 +14,7 @@ try:
 except (ImportError, ModuleNotFoundError):
     rcon_api = None  # ty: ignore[invalid-assignment]
 from rest_api.config import APIConfig
+from rest_api.data import TextResult
 
 psi = ServerInterface.psi()
 builder = SimpleCommandBuilder()
@@ -199,25 +200,24 @@ async def query_rcon(data: dict = Body(..., examples=[{"command": "list"}])):
     try:
         command: str | None = data.get("command", None)
         if not command:
-            return {
-                "is_success": False,
-                "detail": "Error: failed to parse query command.",
-            }
+            return TextResult(
+                is_success=False, detail="Error: failed to parse query command."
+            )
         if rcon_api:
             result = await rcon_api.rcon_get(psi, command)
         result = psi.rcon_query(command)
         if not isinstance(result, str):
             result = None
-        return {"is_success": True, "detail": result}
+        return TextResult(is_success=True, detail=result)
     except Exception as e:
-        return {"is_success": False, "detail": f"Error: {str(e)}"}
+        return TextResult(is_success=True, detail=f"Error: {str(e)}")
 
 
-@app.post("/logger", summary="Log message", dependencies=Depends(verify_token))
+@app.post("/logger", summary="Log message", dependencies=[Depends(verify_token)])
 async def api_logger(msg: str = Body(...)):
     """Log a message to MCDR console."""
     try:
-        psi.logger.info(f"[RESTAPI] {msg}")
-        return {"is_success": True, "detail": "Logged successfully."}
+        psi.logger.info(f"[/logger] {msg}")
+        return TextResult(is_success=True, detail="Message logged.")
     except Exception as e:
-        return {"is_success": False, "detail": f"Error: {str(e)}"}
+        return TextResult(is_success=False, detail=f"Error: {str(e)}")
