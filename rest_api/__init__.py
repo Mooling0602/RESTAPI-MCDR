@@ -70,6 +70,11 @@ def get_token(src: CommandSource):
     if _config is None:
         src.reply("Failed to get token, is config right?")
         return
+    if _config.api_token == APIConfig().api_token:
+        src.reply(
+            f"Token is the default value, please change it in: {psi.get_data_folder()}/config.yml"
+        )
+        src.reply("Current token: ")
     src.reply(_config.api_token)
 
 
@@ -155,7 +160,7 @@ async def query_is_rcon_running():
 
 
 @app.get(
-    "/query/server_pid",
+    "/query/server/pid",
     summary="Query server PID",
     dependencies=[Depends(verify_token)],
 )
@@ -168,7 +173,7 @@ async def query_server_pid():
 
 
 @app.get(
-    "/query/server_pid_all",
+    "/query/server/pid_all",
     summary="Query server all PIDs",
     dependencies=[Depends(verify_token)],
 )
@@ -178,7 +183,7 @@ async def query_server_pid_all():
 
 
 @app.get(
-    "/query/server_info",
+    "/query/server/info",
     summary="Query server informations",
     dependencies=[Depends(verify_token)],
 )
@@ -191,7 +196,7 @@ async def query_server_info():
 
 
 @app.get(
-    "/query/server_ver",
+    "/query/server/ver",
     summary="Query server version",
     dependencies=[Depends(verify_token)],
 )
@@ -204,7 +209,9 @@ async def query_server_ver():
 
 
 @app.get(
-    "/query/server_ip", summary="Query server IP", dependencies=[Depends(verify_token)]
+    "/query/server/ip",
+    summary="Query server IP",
+    dependencies=[Depends(verify_token)],
 )
 async def query_server_ip():
     """Return the IP address of the Minecraft server.
@@ -215,7 +222,7 @@ async def query_server_ip():
 
 
 @app.get(
-    "/query/server_port",
+    "/query/server/port",
     summary="Query server port",
     dependencies=[Depends(verify_token)],
 )
@@ -228,7 +235,7 @@ async def query_server_port():
 
 
 @app.get(
-    "/query/plugin_list",
+    "/query/plugin/list",
     summary="Get MCDR plugin list",
     dependencies=[Depends(verify_token)],
 )
@@ -238,7 +245,7 @@ async def query_plugin_list():
 
 
 @app.get(
-    "/query/plugin_list_unloaded",
+    "/query/plugin/list_unloaded",
     summary="Get MCDR unloaded plugin list",
     dependencies=[Depends(verify_token)],
 )
@@ -248,7 +255,7 @@ async def query_plugin_list_unloaded():
 
 
 @app.get(
-    "/query/plugin_list_disabled",
+    "/query/plugin/list_disabled",
     summary="Get MCDR disabled plugin list",
     dependencies=[Depends(verify_token)],
 )
@@ -258,7 +265,7 @@ async def query_plugin_list_disabled():
 
 
 @app.get(
-    "/query/plugin_type",
+    "/query/plugin/type",
     summary="Query plugin type",
     dependencies=[Depends(verify_token)],
 )
@@ -268,7 +275,7 @@ async def query_plugin_type(plugin_id: str):
 
 
 @app.get(
-    "/query/plugin_meta",
+    "/query/plugin/meta",
     summary="Query plugin metadata",
     dependencies=[Depends(verify_token)],
 )
@@ -278,7 +285,7 @@ async def query_plugin_meta(plugin_id: str):
 
 
 @app.get(
-    "/query/plugin_file_path",
+    "/query/plugin/file_path",
     summary="Query plugin file path",
     dependencies=[Depends(verify_token)],
 )
@@ -288,7 +295,7 @@ async def query_plugin_file_path(plugin_id: str):
 
 
 @app.get(
-    "/query/mcdr_language",
+    "/query/mcdr/language",
     summary="Query MCDR language",
     dependencies=[Depends(verify_token)],
 )
