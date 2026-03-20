@@ -178,6 +178,56 @@ async def query_server_pid_all():
 
 
 @app.get(
+    "/query/server_info",
+    summary="Query server informations",
+    dependencies=[Depends(verify_token)],
+)
+async def query_server_info():
+    """Return a `ServerInformation` object indicating the information of the current server, interred from the output of the server.
+
+    It's field(s) might be `None` if the server is offline, or the related information has not been parsed.
+    """
+    return psi.get_server_information()
+
+
+@app.get(
+    "/query/server_ver",
+    summary="Query server version",
+    dependencies=[Depends(verify_token)],
+)
+async def query_server_ver():
+    """Return the version string of the Minecraft server.
+
+    Might be `None` if the server is offline, or the related information has not been parsed.
+    """
+    return psi.get_server_information().version
+
+
+@app.get(
+    "/query/server_ip", summary="Query server IP", dependencies=[Depends(verify_token)]
+)
+async def query_server_ip():
+    """Return the IP address of the Minecraft server.
+
+    Might be `None` if the server is offline, or the related information has not been parsed.
+    """
+    return psi.get_server_information().ip
+
+
+@app.get(
+    "/query/server_port",
+    summary="Query server port",
+    dependencies=[Depends(verify_token)],
+)
+async def query_server_port():
+    """Return the port number of the Minecraft server.
+
+    Might be `None` if the server is offline, or the related information has not been parsed.
+    """
+    return psi.get_server_information().port
+
+
+@app.get(
     "/query/plugin_list",
     summary="Get MCDR plugin list",
     dependencies=[Depends(verify_token)],
@@ -188,6 +238,26 @@ async def query_plugin_list():
 
 
 @app.get(
+    "/query/plugin_list_unloaded",
+    summary="Get MCDR unloaded plugin list",
+    dependencies=[Depends(verify_token)],
+)
+async def query_plugin_list_unloaded():
+    """Return a list containing all unloaded plugin file path like `["plugins/MyPlugin.mcdr"]`."""
+    return psi.get_unloaded_plugin_list()
+
+
+@app.get(
+    "/query/plugin_list_disabled",
+    summary="Get MCDR disabled plugin list",
+    dependencies=[Depends(verify_token)],
+)
+async def query_plugin_list_disabled():
+    """Return a list containing all disabled plugin file path like `["plugins/MyPlugin.mcdr"]`."""
+    return psi.get_disabled_plugin_list()
+
+
+@app.get(
     "/query/plugin_type",
     summary="Query plugin type",
     dependencies=[Depends(verify_token)],
@@ -195,6 +265,26 @@ async def query_plugin_list():
 async def query_plugin_type(plugin_id: str):
     """Return the type of the specified plugin, or None if failed to query."""
     return psi.get_plugin_type(plugin_id)
+
+
+@app.get(
+    "/query/plugin_meta",
+    summary="Query plugin metadata",
+    dependencies=[Depends(verify_token)],
+)
+async def query_plugin_meta(plugin_id: str):
+    """Return the metadata of the specified plugin, or `None` if the plugin doesn't exist."""
+    return psi.get_plugin_metadata(plugin_id)
+
+
+@app.get(
+    "/query/plugin_file_path",
+    summary="Query plugin file path",
+    dependencies=[Depends(verify_token)],
+)
+async def query_plugin_file_path(plugin_id: str):
+    """Return the file path of the specified plugin, or `None` if the plugin doesn't exist."""
+    return psi.get_plugin_file_path(plugin_id)
 
 
 @app.get(
@@ -232,5 +322,29 @@ async def api_logger(msg: str = Body(...)):
     try:
         psi.logger.info(f"[/logger] {msg}")
         return TextResult(is_success=True, detail="Message logged.")
+    except Exception as e:
+        return TextResult(is_success=False, detail=f"Error: {str(e)}")
+
+
+@app.post(
+    "/server/broadcast",
+    summary="Broadcast message to server",
+    dependencies=[Depends(verify_token)],
+)
+@app.post(
+    "/logger_all",
+    summary="Log message all (alias of /server/broadcast)",
+    dependencies=[Depends(verify_token)],
+)
+async def api_logger_all(msg: str = Body(...)):
+    """Broadcast the message in game and to the console.
+
+    If the server is not running, send the message to console only.
+    """
+    try:
+        psi.broadcast(f"[RESTAPI] [/logger] {msg}")
+        return TextResult(
+            is_success=True, detail="Message logged to console and server."
+        )
     except Exception as e:
         return TextResult(is_success=False, detail=f"Error: {str(e)}")
