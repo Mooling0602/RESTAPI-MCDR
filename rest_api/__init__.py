@@ -328,7 +328,7 @@ async def api_logger(msg: str = Body(...)):
 
 @app.post(
     "/server/broadcast",
-    summary="Broadcast message to server",
+    summary="Broadcast message to MCDR, server",
     dependencies=[Depends(verify_token)],
 )
 @app.post(
@@ -346,5 +346,19 @@ async def api_logger_all(msg: str = Body(...)):
         return TextResult(
             is_success=True, detail="Message logged to console and server."
         )
+    except Exception as e:
+        return TextResult(is_success=False, detail=f"Error: {str(e)}")
+
+
+@app.post(
+    "/server/say",
+    summary="Broadcast message to server",
+    dependencies=[Depends(verify_token)],
+)
+async def api_server_say(msg: str = Body(...)):
+    """Use command like `/tellraw @a` to broadcast the message in game."""
+    try:
+        psi.say(f"[RESTAPI] {msg}")
+        return TextResult(is_success=True, detail="Message is sent to server.")
     except Exception as e:
         return TextResult(is_success=False, detail=f"Error: {str(e)}")
