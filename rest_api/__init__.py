@@ -162,7 +162,7 @@ async def query_is_rcon_running():
 async def query_server_pid():
     """Return the pid of the server process.
 
-    **Notes**: the process with this pid is a bash process, which is the parent process of real server process you might be interested in.
+    **Note**: the process with this pid is a bash process, which is the parent process of real server process you might be interested in.
     """
     return psi.get_server_pid()
 
@@ -173,7 +173,7 @@ async def query_server_pid():
     dependencies=[Depends(verify_token)],
 )
 async def query_server_pid_all():
-    """Return a list of pid of all processes in the server’s process group."""
+    """Return a list of pid of all processes in the server's process group."""
     return psi.get_server_pid_all()
 
 
