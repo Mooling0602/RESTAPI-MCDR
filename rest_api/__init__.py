@@ -38,7 +38,8 @@ def on_load(s: PluginServerInterface, _):
     _config = s.load_config_simple(file_name="config.yml", target_class=APIConfig)  # ty: ignore[invalid-assignment]
     psi = s
     # noinspection SpellCheckingInspection
-    rcon_api = s.get_plugin_instance("moolings_rcon_api")  # ty: ignore[invalid-assignment]
+    if not rcon_api:
+        rcon_api = s.get_plugin_instance("moolings_rcon_api")
     if fastapi_mcdr is not None and fastapi_mcdr.is_ready():
         app.include_router(webhooks_router)
         mount_app(s)
