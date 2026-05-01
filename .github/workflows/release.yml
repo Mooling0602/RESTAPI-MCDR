@@ -18,6 +18,22 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Validate release commit
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ ! "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release tag: $tag" >&2
+            exit 1
+          fi
+
+          subject="$(git log -1 --format=%s)"
+          expected="release: v${tag}"
+          if [[ "$subject" != "$expected" ]]; then
+            echo "Tag ${tag} must point to commit message '${expected}', got '${subject}'." >&2
+            exit 1
+          fi
+
       - uses: astral-sh/setup-uv@v5
 
       - uses: actions/setup-python@v5
@@ -36,16 +52,36 @@ jobs:
         shell: bash
         run: |
           tag="${GITHUB_REF_NAME}"
-          if [[ ! "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid release tag: $tag" >&2
+          mapfile -t tags < <(git for-each-ref --sort=creatordate --format='%(refname:strip=2)' refs/tags)
+          tag_count="${#tags[@]}"
+
+          if (( tag_count == 0 )); then
+            echo "No tags found in repository." >&2
             exit 1
           fi
 
-          previous_tag="$(git tag --sort=-version:refname | grep -Fxv "$tag" | head -n 1 || true)"
-          if [[ -n "$previous_tag" ]]; then
-            compare_link="$(uv run python .github/scripts/get_link.py --compare "$previous_tag" "$tag")"
-          else
+          if (( tag_count == 1 )); then
             compare_link="$(uv run python .github/scripts/get_link.py --compare "$tag")"
+          else
+            current_index=-1
+            for i in "${!tags[@]}"; do
+              if [[ "${tags[i]}" == "$tag" ]]; then
+                current_index="$i"
+                break
+              fi
+            done
+
+            if (( current_index < 0 )); then
+              echo "Current tag '$tag' not found in repository tag list." >&2
+              exit 1
+            fi
+            if (( current_index == 0 )); then
+              echo "Current tag '$tag' has no previous tag in time order." >&2
+              exit 1
+            fi
+
+            previous_tag="${tags[current_index-1]}"
+            compare_link="$(uv run python .github/scripts/get_link.py --compare "$previous_tag" "$tag")"
           fi
 
           python - "$tag" "$compare_link" <<'PY' > release-notes.md
@@ -70,7 +106,7 @@ jobs:
                   section.append(line)
 
           if not section:
-              section = lines
+              raise SystemExit(f"Missing changelog section for tag {tag!r} in doc/CHANGELOG.md")
 
           body = "\n".join(
               line.replace("**#full_changelog**", f"**Full changelog**: {compare_link}")
@@ -83,7 +119,6 @@ jobs:
       - name: Publish release
         uses: softprops/action-gh-release@v2
         with:
+          name: v${{ github.ref_name }}
           body_path: release-notes.md
           files: ./*.mcdr
-
-

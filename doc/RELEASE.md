@@ -46,6 +46,7 @@ A qualifying commit which can trigger CI should match one of the following condi
 
 > It will publish a release after build.
 
-When release is triggered, the CI should parse the change log from [CHANGELOG](CHANGELOG.md), and replace `**#full_changelog**` with `**Full changelog**: <url>`.
+When release is triggered, the CI should set the release title to v<version> (like `v1.0.0`) and parse the change log from [CHANGELOG](CHANGELOG.md), and replace `**#full_changelog**` with `**Full changelog**: <url>`.
+> Shouldn't change the content or add extra informations to the release note!
 
 > For `<url>`, use this [script](.github/scripts/get_link.py) to get the compare link, usage is `.github/scripts/get_link.py --compare <old_tag> <new_tag>`, or provide `<old_tag>` only for the first release version.
