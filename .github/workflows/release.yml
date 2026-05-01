@@ -94,18 +94,19 @@ jobs:
 
           section: list[str] = []
           capture = False
+          found_section = False
           for line in lines:
               if line.startswith("## "):
                   if capture:
                       break
                   capture = line[3:].strip() == tag
                   if capture:
-                      section.append(line)
+                      found_section = True
                   continue
               if capture:
                   section.append(line)
 
-          if not section:
+          if not found_section:
               raise SystemExit(f"Missing changelog section for tag {tag!r} in doc/CHANGELOG.md")
 
           body = "\n".join(
