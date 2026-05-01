@@ -4,6 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "rest_api"
+# version = "0.1.0"
 dynamic = ["version"]
 description = "A RESTful API for MCDReforged."
 readme = "README.md"
