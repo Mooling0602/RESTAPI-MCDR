@@ -1,3 +1,4 @@
+# noinspection PyPackageRequirements
 from typing import Any, Awaitable, Callable
 
 from fastapi import APIRouter, Body, Depends, FastAPI, HTTPException
@@ -20,7 +21,7 @@ from rest_api.data import TextResult
 
 psi = ServerInterface.psi()
 builder = SimpleCommandBuilder()
-_config: APIConfig = APIConfig()
+_config = APIConfig()
 app = FastAPI()
 fastapi_mcdr = None
 auth_header = APIKeyHeader(name="Authorization", auto_error=False)
@@ -35,7 +36,7 @@ class ConfigError(RuntimeError):
 def on_load(s: PluginServerInterface, _):
     global fastapi_mcdr, _config, psi, rcon_api
     fastapi_mcdr = s.get_plugin_instance("fastapi_mcdr")
-    _config = s.load_config_simple(file_name="config.yml", target_class=APIConfig)  # ty: ignore[invalid-assignment]
+    _config = s.load_config_simple(file_name="config.yml", target_class=APIConfig)
     psi = s
     # noinspection SpellCheckingInspection
     if not rcon_api:
@@ -120,7 +121,7 @@ def webhook(path: str, summary: str | None = None, require_auth: bool = False):
 @app.get("/greet", summary="Debug greet")
 async def debug_greet():
     """Get a greeting message."""
-    return "Hello, world!"
+    return _config.greet_message
 
 
 @app.get("/status", summary="Check status", dependencies=[Depends(verify_token)])

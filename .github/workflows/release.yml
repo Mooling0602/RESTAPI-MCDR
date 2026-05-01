@@ -1,0 +1,89 @@
+name: Release
+
+'on':
+  push:
+    tags:
+      - "*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: astral-sh/setup-uv@v5
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Build plugin
+        run: |
+          rm -f ./*.mcdr
+          uv run mcdreforged pack
+
+      - name: Prepare release notes
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          if [[ ! "$tag" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid release tag: $tag" >&2
+            exit 1
+          fi
+
+          previous_tag="$(git tag --sort=-version:refname | grep -Fxv "$tag" | head -n 1 || true)"
+          if [[ -n "$previous_tag" ]]; then
+            compare_link="$(uv run python .github/scripts/get_link.py --compare "$previous_tag" "$tag")"
+          else
+            compare_link="$(uv run python .github/scripts/get_link.py --compare "$tag")"
+          fi
+
+          python - "$tag" "$compare_link" <<'PY' > release-notes.md
+          from pathlib import Path
+          import sys
+
+          tag = sys.argv[1]
+          compare_link = sys.argv[2]
+          lines = Path("doc/CHANGELOG.md").read_text(encoding="utf-8").splitlines()
+
+          section: list[str] = []
+          capture = False
+          for line in lines:
+              if line.startswith("## "):
+                  if capture:
+                      break
+                  capture = line[3:].strip() == tag
+                  if capture:
+                      section.append(line)
+                  continue
+              if capture:
+                  section.append(line)
+
+          if not section:
+              section = lines
+
+          body = "\n".join(
+              line.replace("**#full_changelog**", f"**Full changelog**: {compare_link}")
+              for line in section
+          ).strip()
+
+          print(body)
+          PY
+
+      - name: Publish release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release-notes.md
+          files: ./*.mcdr
+
+

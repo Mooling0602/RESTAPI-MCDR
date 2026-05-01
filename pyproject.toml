@@ -1,19 +1,26 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "rest_api"
-version = "0.0.1"
+dynamic = ["version"]
 description = "A RESTful API for MCDReforged."
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi>=0.135.1",
+    "fastapi>=0.136.1",
     "mcdreforged>=2.15.7",
 ]
 
 [dependency-groups]
-optional = [
-    "moolings-rcon-api",
-]
-dev = ["ruff>=0.15.6", "ty>=0.0.23",]
+optional = ["moolings-rcon-api"]
+dev = ["ruff>=0.15.12", "ty>=0.0.33"]
+
+[tool.hatch.version]
+source = "regex"
+path = "mcdreforged.plugin.json"
+pattern = '"version"\s*:\s*"(?P<version>[^"]+)"'
 
 [tool.uv.sources]
 moolings-rcon-api = { git = "https://github.com/Mooling0602/MoolingsRconAPI-MCDR.git" }

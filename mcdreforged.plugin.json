@@ -1,13 +1,13 @@
 {
   "id": "rest_api",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "name": "RESTAPI",
   "description": {
     "en_us": "A RESTful API for MCDReforged.",
     "zh_cn": "一个适用于MCDReforged的RESTful API。"
   },
   "author": "Mooling0602",
-  "link": "https://github.com/Mooling0602",
+  "link": "https://github.com/Mooling0602/RESTAPI-MCDR",
   "dependencies": {
     "mcdreforged": ">=2.14.1",
     "fastapi_mcdr": ">=2.0.0",
